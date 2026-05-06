@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autism Services Locator</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
+
+    .topbar {
+      width: 100%;
+      background: #78791f;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h1 {
+      font-size: 26px;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-right button {
+      background: white;
+      color: #1f4e79;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .topbar-right button:hover {
+      background: #e6eef7;
+    }
+
+    .main-container {
+      display: flex;
+      width: 100%;
+      min-height: calc(100vh - 70px);
+      height: calc(100vh - 70px);
+    }
+
+    .left-panel {
+      width: 30%;
+      min-width: 300px;
+      max-width: 380px;
+      background: white;
+      padding: 20px;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .left-panel h2 {
+      margin-bottom: 15px;
+      color: #78791f;
+      font-size: 22px;
+    }
+
+    .left-panel label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .left-panel button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      font-size: 15px;
+      border-radius: 6px;
+    }
+
+    .left-panel button {
+      border: none;
+      background: #78791f;
+      color: white;
+      cursor: pointer;
+    }
+
+    .left-panel button:hover {
+      background: #163a5c;
+    }
+
+    .layer-control-box {
+      margin-bottom: 18px;
+      background: #ffffff;
+      border: 1px solid #d9d9d9;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .layer-control-box h3 {
+      margin-bottom: 12px;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-row + .toggle-row {
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .toggle-switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      background: #d6d6d6;
+      position: relative;
+      transition: background 0.25s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch .toggle-knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #78791f;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: left 0.25s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .toggle-switch.active {
+      background: #d9dbb0;
+    }
+
+    .toggle-switch.active .toggle-knob {
+      left: 23px;
+    }
+
+    .toggle-switch.inactive {
+      background: #d6d6d6;
+    }
+
+    .toggle-switch.inactive .toggle-knob {
+      left: 3px;
+    }
+
+    .results-box {
+      margin-top: 20px;
+      background: #f8fbff;
+      border: 1px solid #d6e4f0;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .results-box h3 {
+      margin-bottom: 10px;
+      color: #1f4e79;
+      font-size: 18px;
+    }
+
+    .result-item {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid #d6e4f0;
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .result-item:hover {
+      background: #eef6ff;
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .map-panel {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .popup-title {
+      font-weight: bold;
+      color: #1f4e79;
+      margin-bottom: 5px;
+    }
+
+    .search-box {
+      margin-bottom: 18px;
+      background: #ffffff;
+      border: 1px solid #d9d9d9;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .search-box h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .search-results-list {
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .search-result-item {
+      padding: 10px;
+      border: 1px solid #d6e4f0;
+      border-radius: 6px;
+      background: #ffffff;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .search-result-item:hover {
+      background: #eef6ff;
+    }
+
+      .details-box {
+      margin-top: 20px;
+      background: #ffffff;
+      border: 1px solid #d6e4f0;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .details-box h3 {
+      margin-bottom: 10px;
+      color: #1f4e79;
+      font-size: 18px;
+    }
+
+    .details-box p {
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .saved-box {
+      margin-top: 20px;
+      background: #ffffff;
+      border: 1px solid #d6e4f0;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .saved-box h3 {
+      margin-bottom: 10px;
+      color: #1f4e79;
+      font-size: 18px;
+    }
+
+    .saved-box p {
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .saved-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #d6e4f0;
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .saved-item:hover {
+      background: #eef6ff;
+    }
+
+    .save-service-btn,
+    .remove-saved-btn {
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 0;
+      padding: 8px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      background: #78791f;
+      color: white;
+      cursor: pointer;
+    }
+
+    .remove-saved-btn {
+      background: #8b2f2f;
+    }
+
+    .save-service-btn:hover,
+    .remove-saved-btn:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 1024px) {
+      .left-panel {
+        width: 35%;
+        min-width: 280px;
+      }
+
+      .topbar h1 {
+        font-size: 22px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 70px);
+      }
+
+      .left-panel {
+        width: 100%;
+        max-width: 100%;
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        overflow-y: visible;
+      }
+
+      .map-panel {
+        width: 100%;
+        height: 70vh;
+        min-height: 450px;
+      }
+
+      #map {
+        height: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 12px 14px;
+        align-items: flex-start;
+      }
+
+      .topbar h1 {
+        font-size: 20px;
+      }
+
+      .topbar-right {
+        width: 100%;
+      }
+
+      .topbar-right button {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .left-panel {
+        padding: 15px;
+      }
+
+      .left-panel h2 {
+        font-size: 20px;
+      }
+
+      .left-panel label {
+        font-size: 14px;
+      }
+
+      .left-panel button {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .layer-control-box {
+        padding: 12px;
+      }
+
+      .toggle-label {
+        font-size: 13px;
+      }
+
+      .toggle-switch {
+        width: 44px;
+        height: 24px;
+      }
+
+      .toggle-switch .toggle-knob {
+        width: 18px;
+        height: 18px;
+        top: 3px;
+        left: 3px;
+      }
+
+      .toggle-switch.active .toggle-knob {
+        left: 23px;
+      }
+
+      .results-box {
+        padding: 12px;
+      }
+
+      .results-box h3 {
+        font-size: 16px;
+      }
+
+      .result-item {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .map-panel {
+        height: 60vh;
+        min-height: 380px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .topbar h1 {
+        font-size: 18px;
+      }
+
+      .left-panel {
+        padding: 12px;
+      }
+
+      .map-panel {
+        height: 55vh;
+        min-height: 320px;
+      }
+    }
+  
+.left-panel h2,
+.layer-control-box h3,
+.results-box h3,
+.details-box h3,
+.saved-box h3,
+.search-box h3,
+.popup-title {
+  color: #78791f !important; /* same as main theme color */
+}
+
+.toggle-label {
+  color: #78791f !important;
+}
+
+
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 12px 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.map-legend h4 {
+  margin-bottom: 8px;
+  color: #78791f;
+  font-size: 14px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.legend-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+}
+
+.legend-school { background: #2E86AB; }
+.legend-hospital { background: #C0392B; }
+.legend-aba { background: #2E8B57; }
+.legend-speech { background: #7D3C98; }
+.legend-support { background: #E67E22; }
+
+@media (max-width: 600px) {
+  .map-legend {
+    right: 10px;
+    bottom: 10px;
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <h1>Services Locator</h1>
+    <div class="topbar-right">
+      <button onclick="goToAbout()">About</button>
+
+      <!-- Language Toggle -->
+      <select id="languageSwitcher" onchange="switchLanguage(this.value)" style="padding:10px;border-radius:6px;font-weight:bold;">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="left-panel">
+      <h2>Service Categories</h2>
+
+      <!-- Search Bar-->
+      <div class="search-box">
+        <h3 id="searchTitle">Search Services</h3>
+        <input type="text" id="serviceSearch" oninput="searchFacilities()" placeholder="Search by name, city, address, or category" />
+        <div id="searchResults" class="search-results-list"></div>
+      </div>
+
+      <div class="layer-control-box">
+        <h3>Layer Control</h3>
+
+        <div class="toggle-row" onclick="toggleCategory('school')">
+          <span class="toggle-label">Schools</span>
+          <div id="btn-school" class="toggle-switch active">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleCategory('hospital')">
+          <span class="toggle-label">Hospitals</span>
+          <div id="btn-hospital" class="toggle-switch active">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleCategory('aba')">
+          <span class="toggle-label">ABA Therapy</span>
+          <div id="btn-aba" class="toggle-switch active">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleCategory('speech')">
+          <span class="toggle-label">Speech & Occupational Therapy</span>
+          <div id="btn-speech" class="toggle-switch active">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleCategory('support')">
+          <span class="toggle-label">Support Organizations</span>
+          <div id="btn-support" class="toggle-switch active">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="resetMap()">Reset</button>
+      <button onclick="findNearbyServices()">Find Nearby Services</button>
+      <button onclick="clearNearestServices()">Clear Nearest Services</button>
+
+      <div class="results-box" id="nearestResults">
+        <h3>Nearest Services</h3>
+        <p>Click "Find Nearby Services" to see the closest locations.</p>
+      </div>
+
+      <!-- Service Details Panel -->
+      <div class="details-box" id="serviceDetails">
+        <h3>Service Details</h3>
+        <p>Select a service from the map, search results, or nearest services list to view details.</p>
+      </div>
+
+      <!-- Saved Services Panel-->
+      <div class="saved-box" id="savedServicesBox">
+        <h3>Saved Services</h3>
+        <p>No saved services yet. Select a service and click Save Service.</p>
+      </div>
+    </div>
+
+    <div class="map-panel">
+      <div id="map"></div>
+
+      <!-- Small map legend added to explain the color-coded service categories -->
+      <div class="map-legend">
+        <h4>Map Legend</h4>
+        <div class="legend-row"><span class="legend-dot legend-school"></span> Schools</div>
+        <div class="legend-row"><span class="legend-dot legend-hospital"></span> Hospitals</div>
+        <div class="legend-row"><span class="legend-dot legend-aba"></span> ABA Therapy</div>
+        <div class="legend-row"><span class="legend-dot legend-speech"></span> Speech & Occupational Therapy</div>
+        <div class="legend-row"><span class="legend-dot legend-support"></span> Support Organizations</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Create map
+    var map = L.map('map').setView([39.143, -77.201], 8);
+
+    // Basemaps
+    var streetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    // Layer groups
+    const schoolsLayer = L.layerGroup();
+    const hospitalLayer = L.layerGroup();
+    const abaLayer = L.layerGroup();
+    const speechLayer = L.layerGroup();
+    const supportLayer = L.layerGroup();
+
+    // Arrays and variables
+    let geojsonData = null;
+    const allFacilities = [];
+    let currentNearestServices = [];
+    let userMarker = null;
+    let accuracyCircle = null;
+    let routeLines = [];
+
+    // keeps the services that the user saves as favorites and stored in the browser using localStorage.
+    let savedServices = [];
+
+    const categoryState = {
+      school: true,
+      hospital: true,
+      aba: true,
+      speech: true,
+      support: true
+    };
+
+    // Language toggle text
+    let currentLanguage = 'en';
+
+    const translations = {
+      en: {
+        title: "Autism Services Locator",
+        about: "About",
+        categories: "Service Categories",
+        layer: "Layer Control",
+        schools: "Schools",
+        hospitals: "Hospitals",
+        aba: "ABA Therapy",
+        speech: "Speech & Occupational Therapy",
+        support: "Support Organizations",
+        reset: "Reset",
+        find: "Find Nearby Services",
+        clear: "Clear Nearest Services",
+        nearest: "Nearest Services",
+        instruction: 'Click "Find Nearby Services" to see the closest locations.',
+        noActive: "No active category layers are available for nearby search.",
+        address: "Address",
+        category: "Category",
+        city: "City",
+        distance: "Distance",
+        youAreHere: "You are here",
+        searchTitle: "Search Services",
+        searchPlaceholder: "Search by name, city, address, or category",
+        searchEmpty: "Type to search for a service.",
+        noSearchResults: "No matching services found.",
+        detailsTitle: "Service Details",
+        detailsInstruction: "Select a service from the map, search results, or nearest services list to view details.",
+        selectedService: "Selected Service",
+        saveService: "Save Service",
+        savedTitle: "Saved Services",
+        savedInstruction: "No saved services yet. Select a service and click Save Service.",
+        alreadySaved: "This service is already saved.",
+        serviceSaved: "Service saved successfully.",
+        removeSaved: "Remove",
+        viewSaved: "View Saved Service"
+      },
+      es: {
+        title: "Localizador de Servicios de Autismo",
+        about: "Acerca de",
+        categories: "Categorías de Servicios",
+        layer: "Control de Capas",
+        schools: "Escuelas",
+        hospitals: "Hospitales",
+        aba: "Terapia ABA",
+        speech: "Terapia del Habla y Ocupacional",
+        support: "Organizaciones de Apoyo",
+        reset: "Restablecer",
+        find: "Buscar Servicios Cercanos",
+        clear: "Limpiar Servicios Cercanos",
+        nearest: "Servicios Más Cercanos",
+        instruction: 'Haz clic en "Buscar Servicios Cercanos" para ver las ubicaciones más próximas.',
+        noActive: "No hay capas de categorías activas disponibles para la búsqueda cercana.",
+        address: "Dirección",
+        category: "Categoría",
+        city: "Ciudad",
+        distance: "Distancia",
+        youAreHere: "Usted está aquí",
+        searchTitle: "Buscar Servicios",
+        searchPlaceholder: "Buscar por nombre, ciudad, dirección o categoría",
+        searchEmpty: "Escriba para buscar un servicio.",
+        noSearchResults: "No se encontraron servicios coincidentes.",
+        detailsTitle: "Detalles del Servicio",
+        detailsInstruction: "Seleccione un servicio del mapa, resultados de búsqueda o lista de servicios cercanos para ver los detalles.",
+        selectedService: "Servicio Seleccionado",
+        saveService: "Guardar Servicio",
+        savedTitle: "Servicios Guardados",
+        savedInstruction: "Aún no hay servicios guardados. Seleccione un servicio y haga clic en Guardar Servicio.",
+        alreadySaved: "Este servicio ya está guardado.",
+        serviceSaved: "Servicio guardado correctamente.",
+        removeSaved: "Eliminar",
+        viewSaved: "Ver Servicio Guardado"
+      }
+    };
+
+    function getText(key) {
+      return translations[currentLanguage][key];
+    }
+
+    function buildPopupContent(p) {
+      // The Save button inside each popup so users can save a service directly from the map.
+      return `<div class="popup-title">${p.name}</div>
+             <b>${getText('address')}:</b> ${p.address}<br>
+             <b>${getText('category')}:</b> ${p.category}<br>
+             <b>${getText('city')}:</b> ${p.city}<br>
+             <button class="save-service-btn" onclick="saveFacilityByEncodedName('${encodeURIComponent(p.name)}')">${getText('saveService')}</button>`;
+    }
+
+    function updateAllPopupContent() {
+      allFacilities.forEach(function(facility) {
+        facility.marker.bindPopup(buildPopupContent(facility));
+      });
+
+      if (userMarker) {
+        userMarker.bindPopup(getText('youAreHere'));
+      }
+    }
+
+    function renderNearestResults() {
+      let html = '<h3>' + getText('nearest') + '</h3>';
+
+      if (currentNearestServices.length === 0) {
+        html += '<p>' + getText('instruction') + '</p>';
+      } else {
+        currentNearestServices.forEach(function(service, index) {
+          html += `
+            <div class="result-item" onclick="zoomToFacility(${index})">
+              <strong>${index + 1}. ${service.name}</strong><br>
+              ${getText('address')}: ${service.address}<br>
+              ${getText('category')}: ${service.category}<br>
+              ${getText('city')}: ${service.city}<br>
+              ${getText('distance')}: ${(service.distance / 1000).toFixed(2)} km
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('nearestResults').innerHTML = html;
+    }
+
+    function renderServiceDetails(service) {
+      if (!service) {
+        document.getElementById('serviceDetails').innerHTML =
+          '<h3>' + getText('detailsTitle') + '</h3><p>' + getText('detailsInstruction') + '</p>';
+        return;
+      }
+
+      document.getElementById('serviceDetails').innerHTML = `
+        <h3>${getText('selectedService')}</h3>
+        <p><strong>${service.name}</strong></p>
+        <p><b>${getText('address')}:</b> ${service.address}</p>
+        <p><b>${getText('category')}:</b> ${service.category}</p>
+        <p><b>${getText('city')}:</b> ${service.city}</p>
+        <button class="save-service-btn" onclick="saveFacilityByEncodedName('${encodeURIComponent(service.name)}')">${getText('saveService')}</button>
+      `;
+    }
+
+    function saveFacilityByEncodedName(encodedName) {
+      // Finds the selected service by name and sends it to the save function.
+      const facilityName = decodeURIComponent(encodedName);
+      const service = allFacilities.find(function(facility) {
+        return facility.name === facilityName;
+      });
+
+      if (service) {
+        saveService(service);
+      }
+    }
+
+    function saveService(service) {
+      // This saves the selected service into localStorage so it remains saved after page refresh.
+      const alreadySaved = savedServices.some(function(saved) {
+        return saved.name === service.name && saved.lat === service.lat && saved.lng === service.lng;
+      });
+
+      if (alreadySaved) {
+        alert(getText('alreadySaved'));
+        return;
+      }
+
+      savedServices.push({
+        name: service.name,
+        address: service.address,
+        category: service.category,
+        city: service.city,
+        lat: service.lat,
+        lng: service.lng
+      });
+
+      localStorage.setItem('savedAutismServices', JSON.stringify(savedServices));
+      renderSavedServices();
+      alert(getText('serviceSaved'));
+    }
+
+    function loadSavedServices() {
+      // This loads saved services from the user's browser when the page opens.
+      const savedData = localStorage.getItem('savedAutismServices');
+
+      if (savedData) {
+        savedServices = JSON.parse(savedData);
+      }
+
+      renderSavedServices();
+    }
+
+    function renderSavedServices() {
+      // Displays all saved services in the left panel.
+      let html = '<h3>' + getText('savedTitle') + '</h3>';
+
+      if (savedServices.length === 0) {
+        html += '<p>' + getText('savedInstruction') + '</p>';
+      } else {
+        savedServices.forEach(function(service, index) {
+          html += `
+            <div class="saved-item">
+              <div onclick="zoomToSavedService(${index})">
+                <strong>${service.name}</strong><br>
+                ${getText('city')}: ${service.city}<br>
+                ${getText('category')}: ${service.category}
+              </div>
+              <button class="remove-saved-btn" onclick="removeSavedService(${index})">${getText('removeSaved')}</button>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('savedServicesBox').innerHTML = html;
+    }
+
+    function zoomToSavedService(index) {
+      // Zooms the map to a saved service and opens its popup if the marker is available.
+      const saved = savedServices[index];
+      if (!saved) return;
+
+      const matchingFacility = allFacilities.find(function(facility) {
+        return facility.name === saved.name && facility.lat === saved.lat && facility.lng === saved.lng;
+      });
+
+      if (matchingFacility) {
+        selectFacility(matchingFacility);
+      } else {
+        map.setView([saved.lat, saved.lng], 15);
+        renderServiceDetails(saved);
+      }
+    }
+
+    function removeSavedService(index) {
+      // Removes one service from the saved list and updates localStorage.
+      savedServices.splice(index, 1);
+      localStorage.setItem('savedAutismServices', JSON.stringify(savedServices));
+      renderSavedServices();
+    }
+
+    function selectFacility(service) {
+      if (!service) return;
+      map.setView([service.lat, service.lng], 15);
+      service.marker.openPopup();
+      renderServiceDetails(service);
+    }
+
+    function searchFacilities() {
+      const input = document.getElementById('serviceSearch');
+      const searchResults = document.getElementById('searchResults');
+      const query = input.value.toLowerCase().trim();
+
+      if (!query) {
+        searchResults.innerHTML = '<p>' + getText('searchEmpty') + '</p>';
+        return;
+      }
+
+      const matches = allFacilities.filter(function(facility) {
+        return (
+          facility.name.toLowerCase().includes(query) ||
+          facility.address.toLowerCase().includes(query) ||
+          facility.category.toLowerCase().includes(query) ||
+          facility.city.toLowerCase().includes(query)
+        );
+      });
+
+      if (matches.length === 0) {
+        searchResults.innerHTML = '<p>' + getText('noSearchResults') + '</p>';
+        return;
+      }
+
+      let html = '';
+      matches.slice(0, 10).forEach(function(service) {
+        const facilityIndex = allFacilities.indexOf(service);
+        html += `
+          <div class="search-result-item" onclick="selectFacility(allFacilities[${facilityIndex}])">
+            <strong>${service.name}</strong><br>
+            ${getText('city')}: ${service.city}<br>
+            ${getText('category')}: ${service.category}
+          </div>
+        `;
+      });
+
+      searchResults.innerHTML = html;
+    }
+
+    function switchLanguage(lang) {
+      currentLanguage = lang;
+      const t = translations[lang];
+
+      document.querySelector(".topbar h1").innerText = t.title;
+      document.querySelector(".topbar-right button").innerText = t.about;
+      document.querySelector(".left-panel h2").innerText = t.categories;
+      document.querySelector(".layer-control-box h3").innerText = t.layer;
+
+      document.querySelectorAll(".toggle-label")[0].innerText = t.schools;
+      document.querySelectorAll(".toggle-label")[1].innerText = t.hospitals;
+      document.querySelectorAll(".toggle-label")[2].innerText = t.aba;
+      document.querySelectorAll(".toggle-label")[3].innerText = t.speech;
+      document.querySelectorAll(".toggle-label")[4].innerText = t.support;
+
+      document.querySelectorAll(".left-panel button")[0].innerText = t.reset;
+      document.querySelectorAll(".left-panel button")[1].innerText = t.find;
+      document.querySelectorAll(".left-panel button")[2].innerText = t.clear;
+
+      document.getElementById('searchTitle').innerText = t.searchTitle;
+      document.getElementById('serviceSearch').placeholder = t.searchPlaceholder;
+
+      updateAllPopupContent();
+      renderNearestResults();
+      renderServiceDetails(null);
+      renderSavedServices();
+      searchFacilities();
+    }
+
+    // Icons
+    const schoolIcon = L.icon({
+      iconUrl: 'img/School.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    const hospitalIcon = L.icon({
+      iconUrl: 'img/Hospital.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    const abaIcon = L.icon({
+      iconUrl: 'img/ABA therapy.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    const speechIcon = L.icon({
+      iconUrl: 'img/Speech and occupational therapy.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    const supportIcon = L.icon({
+      iconUrl: 'img/Support Organisation.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    function goToAbout() {
+      window.location.href = "about.html";
+    }
+
+    function addAllLayers() {
+      if (categoryState.school) {
+        schoolsLayer.addTo(map);
+      }
+      if (categoryState.hospital) {
+        hospitalLayer.addTo(map);
+      }
+      if (categoryState.aba) {
+        abaLayer.addTo(map);
+      }
+      if (categoryState.speech) {
+        speechLayer.addTo(map);
+      }
+      if (categoryState.support) {
+        supportLayer.addTo(map);
+      }
+    }
+
+    function removeAllLayers() {
+      map.removeLayer(schoolsLayer);
+      map.removeLayer(hospitalLayer);
+      map.removeLayer(abaLayer);
+      map.removeLayer(speechLayer);
+      map.removeLayer(supportLayer);
+    }
+
+    function clearRouteLines() {
+      routeLines.forEach(function(line) {
+        map.removeLayer(line);
+      });
+      routeLines = [];
+    }
+
+    function zoomToFacility(index) {
+      const service = currentNearestServices[index];
+      if (!service) return;
+
+      map.setView([service.lat, service.lng], 15);
+      service.marker.openPopup();
+      renderServiceDetails(service);
+    }
+
+    function clearNearestServices() {
+      currentNearestServices = [];
+      clearRouteLines();
+
+      if (userMarker) {
+        map.removeLayer(userMarker);
+        userMarker = null;
+      }
+
+      if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+        accuracyCircle = null;
+      }
+
+      renderNearestResults();
+    }
+
+
+
+    function createCategoryCircleMarker(latlng, color) {
+      // Color-coded circle markers.
+      return L.circleMarker(latlng, {
+        radius: 7,
+        fillColor: color,
+        color: '#ffffff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.9
+      });
+    }
+
+    function getCategoryStyle(categoryText) {
+      const category = (categoryText || '').toLowerCase().trim();
+
+      if (category.includes('school')) {
+        return { icon: schoolIcon, layer: schoolsLayer, key: 'school', color: '#2E86AB' };
+      } else if (category.includes('hospital')) {
+        return { icon: hospitalIcon, layer: hospitalLayer, key: 'hospital', color: '#C0392B' };
+      } else if (category.includes('aba')) {
+        return { icon: abaIcon, layer: abaLayer, key: 'aba', color: '#2E8B57' };
+      } else if (category.includes('speech') || category.includes('occupational')) {
+        return { icon: speechIcon, layer: speechLayer, key: 'speech', color: '#7D3C98' };
+      } else if (
+        category.includes('support') ||
+        category.includes('organisation') ||
+        category.includes('organization') ||
+        category.includes('autisms support')
+      ) {
+        return { icon: supportIcon, layer: supportLayer, key: 'support', color: '#E67E22' };
+      } else {
+        return null;
+      }
+    }
+
+    function buildMapLayers(data) {
+      // Clear old data
+      schoolsLayer.clearLayers();
+      hospitalLayer.clearLayers();
+      abaLayer.clearLayers();
+      speechLayer.clearLayers();
+      supportLayer.clearLayers();
+      allFacilities.length = 0;
+
+      const boundsArray = [];
+
+      L.geoJSON(data, {
+        filter: function(feature) {
+          return (
+            feature.geometry &&
+            feature.geometry.type === "Point" &&
+            Array.isArray(feature.geometry.coordinates) &&
+            feature.geometry.coordinates.length >= 2 &&
+            typeof feature.geometry.coordinates[0] === "number" &&
+            typeof feature.geometry.coordinates[1] === "number"
+          );
+        },
+
+        pointToLayer: function(feature, latlng) {
+          const raw = feature.properties || {};
+
+          const p = {
+            name: raw.USER_Name || 'No Name',
+            address: raw.Place_addr || 'N/A',
+            category: raw.USER_Category || 'N/A',
+            city: raw.IN_City || 'N/A'
+          };
+
+          const styleInfo = getCategoryStyle(p.category);
+
+          if (!styleInfo) {
+            return L.marker(latlng, { opacity: 0 });
+          }
+
+          const marker = createCategoryCircleMarker(latlng, styleInfo.color);
+
+          marker.bindPopup(buildPopupContent(p));
+
+          marker.on('click', function() {
+            renderServiceDetails({
+              name: p.name,
+              address: p.address,
+              category: p.category,
+              city: p.city,
+              lat: latlng.lat,
+              lng: latlng.lng,
+              marker: marker,
+              categoryKey: styleInfo.key
+            });
+          });
+
+          styleInfo.layer.addLayer(marker);
+
+          allFacilities.push({
+            name: p.name,
+            address: p.address,
+            category: p.category,
+            city: p.city,
+            lat: latlng.lat,
+            lng: latlng.lng,
+            marker: marker,
+            categoryKey: styleInfo.key
+          });
+
+          boundsArray.push([latlng.lat, latlng.lng]);
+          return marker;
+        }
+      });
+
+      return boundsArray;
+    }
+
+    function updateToggleButton(category) {
+      const button = document.getElementById('btn-' + category);
+
+      if (categoryState[category]) {
+        button.classList.remove('inactive');
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+        button.classList.add('inactive');
+      }
+    }
+
+    function toggleCategory(category) {
+      categoryState[category] = !categoryState[category];
+      updateToggleButton(category);
+
+      if (category === 'school') {
+        if (categoryState[category]) {
+          schoolsLayer.addTo(map);
+        } else {
+          map.removeLayer(schoolsLayer);
+        }
+      } else if (category === 'hospital') {
+        if (categoryState[category]) {
+          hospitalLayer.addTo(map);
+        } else {
+          map.removeLayer(hospitalLayer);
+        }
+      } else if (category === 'aba') {
+        if (categoryState[category]) {
+          abaLayer.addTo(map);
+        } else {
+          map.removeLayer(abaLayer);
+        }
+      } else if (category === 'speech') {
+        if (categoryState[category]) {
+          speechLayer.addTo(map);
+        } else {
+          map.removeLayer(speechLayer);
+        }
+      } else if (category === 'support') {
+        if (categoryState[category]) {
+          supportLayer.addTo(map);
+        } else {
+          map.removeLayer(supportLayer);
+        }
+      }
+
+      const activeLayers = [];
+      if (categoryState.school) activeLayers.push(schoolsLayer);
+      if (categoryState.hospital) activeLayers.push(hospitalLayer);
+      if (categoryState.aba) activeLayers.push(abaLayer);
+      if (categoryState.speech) activeLayers.push(speechLayer);
+      if (categoryState.support) activeLayers.push(supportLayer);
+
+      if (activeLayers.length > 0) {
+        const bounds = L.featureGroup(activeLayers).getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
+      }
+    }
+
+    function resetMap() {
+      categoryState.school = true;
+      categoryState.hospital = true;
+      categoryState.aba = true;
+      categoryState.speech = true;
+      categoryState.support = true;
+
+      updateToggleButton('school');
+      updateToggleButton('hospital');
+      updateToggleButton('aba');
+      updateToggleButton('speech');
+      updateToggleButton('support');
+
+      removeAllLayers();
+      addAllLayers();
+      clearNearestServices();
+
+      const allBoundsGroup = L.featureGroup([
+        schoolsLayer,
+        hospitalLayer,
+        abaLayer,
+        speechLayer,
+        supportLayer
+      ]);
+
+      const bounds = allBoundsGroup.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }
+
+    function findNearbyServices() {
+      if (!window.isSecureContext) {
+        alert('Nearby location works only on HTTPS or localhost.');
+        return;
+      }
+
+      map.locate({
+        setView: true,
+        maxZoom: 12,
+        enableHighAccuracy: true
+      });
+    }
+
+    map.on('locationfound', function(e) {
+      clearRouteLines();
+
+      const userLat = e.latlng.lat;
+      const userLng = e.latlng.lng;
+
+      if (userMarker) {
+        map.removeLayer(userMarker);
+      }
+
+      if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+      }
+
+      userMarker = L.marker([userLat, userLng]).addTo(map)
+        .bindPopup(getText('youAreHere'))
+        .openPopup();
+
+      accuracyCircle = L.circle([userLat, userLng], {
+        radius: e.accuracy
+      }).addTo(map);
+
+      const nearby = allFacilities
+        .filter(function(facility) {
+          return categoryState[facility.categoryKey];
+        })
+        .map(function(facility) {
+          const distance = map.distance([userLat, userLng], [facility.lat, facility.lng]);
+          return {
+            ...facility,
+            distance: distance
+          };
+        });
+
+      nearby.sort(function(a, b) {
+        return a.distance - b.distance;
+      });
+
+      const nearestFive = nearby.slice(0, 5);
+      currentNearestServices = nearestFive;
+
+      nearestFive.forEach(function(service) {
+        const line = L.polyline(
+          [
+            [userLat, userLng],
+            [service.lat, service.lng]
+          ],
+          { weight: 3 }
+        ).addTo(map);
+
+        routeLines.push(line);
+      });
+
+      if (nearestFive.length === 0) {
+        document.getElementById('nearestResults').innerHTML =
+          '<h3>' + getText('nearest') + '</h3><p>' + getText('noActive') + '</p>';
+      } else {
+        renderNearestResults();
+      }
+    });
+
+    map.on('locationerror', function(e) {
+      alert('Unable to get your location: ' + e.message);
+    });
+
+    // Load GeoJSON 
+    fetch("Autistic_facilities.geojson")
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error("Could not load GeoJSON file.");
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        geojsonData = data;
+
+        const boundsArray = buildMapLayers(geojsonData);
+        addAllLayers();
+        searchFacilities();
+        loadSavedServices();
+
+        if (boundsArray.length > 0) {
+          map.fitBounds(boundsArray, { padding: [30, 30] });
+        } else {
+          alert("GeoJSON loaded, but no valid points were found.");
+        }
+      })
+      .catch(function(error) {
+        console.error(error);
+        alert("GeoJSON file did not load. Make sure Autistic_facilities.geojson is in the same folder as this HTML file.");
+      });
+  </script>
+</body>
+</html>
+
+
