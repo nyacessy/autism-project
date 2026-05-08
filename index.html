@@ -712,9 +712,39 @@
     max-width: 230px;
     font-size: 12px;
     padding: 10px;
+    /* Keep hamburger + language toggle on top right */
+@media (max-width: 768px) {
+  
+  .topbar {
+    justify-content: space-between !important;
+  }
+
+  .topbar-right {
+    display: flex !important;   /* bring it back */
+    position: absolute;
+    right: 60px;                /* leave space for hamburger */
+    top: 8px;
+    gap: 6px;
+  }
+
+  #languageSwitcher {
+    display: block !important;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .hamburger-btn {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+  }
+
+  /* Optional: hide About button on phone (cleaner UI) */
+  .topbar-right button {
+    display: none;
   }
 }
-
+  
   </style>
 </head>
 <body>
