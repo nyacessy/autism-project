@@ -712,39 +712,51 @@
     max-width: 230px;
     font-size: 12px;
     padding: 10px;
-    /* Keep hamburger + language toggle on top right */
+  }
+}
+
+
+/* Mobile top-right controls: keeps the language toggle and hamburger visible on phones */
 @media (max-width: 768px) {
-  
   .topbar {
-    justify-content: space-between !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
   }
 
   .topbar-right {
-    display: flex !important;   /* bring it back */
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
     position: absolute;
-    right: 60px;                /* leave space for hamburger */
     top: 8px;
+    right: 62px;
     gap: 6px;
+    z-index: 2100;
   }
 
   #languageSwitcher {
     display: block !important;
-    font-size: 13px;
-    padding: 6px 8px;
+    width: auto !important;
+    max-width: 112px;
+    padding: 8px 8px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
   }
 
   .hamburger-btn {
+    display: block !important;
     position: absolute;
-    right: 10px;
     top: 8px;
+    right: 10px;
+    z-index: 2100;
   }
 
-  /* Optional: hide About button on phone (cleaner UI) */
   .topbar-right button {
-    display: none;
+    display: none !important;
   }
 }
-  
+
   </style>
 </head>
 <body>
