@@ -547,25 +547,169 @@
   color: #333;
 }
 
-.legend-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-  display: inline-block;
+.legend-symbol {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: bold;
+  line-height: 1;
 }
 
-.legend-school { background: #2E86AB; }
-.legend-hospital { background: #C0392B; }
-.legend-aba { background: #2E8B57; }
-.legend-speech { background: #7D3C98; }
-.legend-support { background: #E67E22; }
+.legend-school { color: #2E86AB; }
+.legend-hospital { color: #C0392B; }
+.legend-aba { color: #2E8B57; }
+.legend-speech { color: #7D3C98; }
+.legend-support { color: #E67E22; }
+
+/* Category symbols used on the map. They are CSS/HTML symbols, so no image files are needed. */
+.category-symbol-marker {
+  background: transparent;
+  border: none;
+}
+
+.category-symbol {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.95), 0 0 4px rgba(255,255,255,0.95);
+}
+
+.symbol-school { color: #2E86AB; }      /* Star = Schools */
+.symbol-hospital { color: #C0392B; }    /* Triangle = Hospitals */
+.symbol-aba { color: #2E8B57; }         /* Diamond = ABA Therapy */
+.symbol-speech { color: #7D3C98; }      /* Circle = Speech/Occupational Therapy */
+.symbol-support { color: #E67E22; }     /* Plus = Support Organizations */
+
+.hamburger-btn,
+.mobile-close-btn,
+.mobile-overlay {
+  display: none;
+}
 
 @media (max-width: 600px) {
   .map-legend {
     right: 10px;
     bottom: 10px;
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+
+/* Phone and tablet layout: show the map first, hide tools, and open them with the hamburger menu. */
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 54px;
+    padding: 8px 12px;
+    z-index: 2000;
+    justify-content: flex-start;
+    background: rgba(120, 121, 31, 0.95);
+  }
+
+  .topbar h1,
+  .topbar-right {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: block;
+    width: 44px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    color: #78791f;
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .main-container {
+    height: 100vh;
+    min-height: 100vh;
+    display: block;
+  }
+
+  .map-panel {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  #map {
+    width: 100%;
+    height: 100vh;
+  }
+
+  .left-panel {
+    position: fixed;
+    top: 0;
+    left: -86%;
+    width: 86%;
+    max-width: 360px;
+    min-width: 260px;
+    height: 100vh;
+    padding: 60px 15px 18px 15px;
+    border-right: 1px solid #ddd;
+    border-bottom: none;
+    overflow-y: auto;
+    z-index: 2500;
+    transition: left 0.25s ease;
+    box-shadow: 3px 0 12px rgba(0,0,0,0.25);
+  }
+
+  .left-panel.panel-open {
+    left: 0;
+  }
+
+  .mobile-close-btn {
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 38px !important;
+    height: 38px;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: #78791f !important;
+    color: white !important;
+    font-size: 26px !important;
+    line-height: 38px;
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 2400;
+  }
+
+  .mobile-overlay.active {
+    display: block;
+  }
+
+  .map-legend {
+    right: 10px;
+    bottom: 24px;
+    max-width: 230px;
     font-size: 12px;
     padding: 10px;
   }
@@ -577,6 +721,10 @@
 
   <div class="topbar">
     <h1>Services Locator</h1>
+
+    <!-- Mobile hamburger menu: this only appears on phones/tablets -->
+    <button id="mobileMenuBtn" class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open service menu">☰</button>
+
     <div class="topbar-right">
       <button onclick="goToAbout()">About</button>
 
@@ -589,7 +737,12 @@
   </div>
 
   <div class="main-container">
-    <div class="left-panel">
+    <!-- Dark background that appears behind the mobile menu -->
+    <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileMenu()"></div>
+
+    <div class="left-panel" id="leftPanel">
+      <!-- Close button for mobile menu only -->
+      <button class="mobile-close-btn" onclick="closeMobileMenu()" aria-label="Close service menu">×</button>
       <h2>Service Categories</h2>
 
       <!-- Search Bar-->
@@ -666,11 +819,11 @@
       <!-- Small map legend added to explain the color-coded service categories -->
       <div class="map-legend">
         <h4>Map Legend</h4>
-        <div class="legend-row"><span class="legend-dot legend-school"></span> Schools</div>
-        <div class="legend-row"><span class="legend-dot legend-hospital"></span> Hospitals</div>
-        <div class="legend-row"><span class="legend-dot legend-aba"></span> ABA Therapy</div>
-        <div class="legend-row"><span class="legend-dot legend-speech"></span> Speech & Occupational Therapy</div>
-        <div class="legend-row"><span class="legend-dot legend-support"></span> Support Organizations</div>
+        <div class="legend-row"><span class="legend-symbol legend-school">★</span> Schools</div>
+        <div class="legend-row"><span class="legend-symbol legend-hospital">▲</span> Hospitals</div>
+        <div class="legend-row"><span class="legend-symbol legend-aba">◆</span> ABA Therapy</div>
+        <div class="legend-row"><span class="legend-symbol legend-speech">●</span> Speech & Occupational Therapy</div>
+        <div class="legend-row"><span class="legend-symbol legend-support">✚</span> Support Organizations</div>
       </div>
     </div>
   </div>
@@ -864,7 +1017,7 @@
     }
 
     function saveService(service) {
-      // This saves the selected service into localStorage so it remains saved after page refresh.
+      // Saves the selected service into localStorage so it remains saved after page refresh.
       const alreadySaved = savedServices.some(function(saved) {
         return saved.name === service.name && saved.lat === service.lat && saved.lng === service.lng;
       });
@@ -889,7 +1042,7 @@
     }
 
     function loadSavedServices() {
-      // This loads saved services from the user's browser when the page opens.
+      //loads saved services from the user's browser when the page opens.
       const savedData = localStorage.getItem('savedAutismServices');
 
       if (savedData) {
@@ -952,6 +1105,7 @@
       map.setView([service.lat, service.lng], 15);
       service.marker.openPopup();
       renderServiceDetails(service);
+      closeMobileMenu();
     }
 
     function searchFacilities() {
@@ -1062,6 +1216,24 @@
       window.location.href = "about.html";
     }
 
+    function toggleMobileMenu() {
+      // Opens and closes the left panel on phones and tablets.
+      document.getElementById('leftPanel').classList.toggle('panel-open');
+      document.getElementById('mobileOverlay').classList.toggle('active');
+      setTimeout(function() {
+        map.invalidateSize();
+      }, 260);
+    }
+
+    function closeMobileMenu() {
+      // Closes the mobile menu and returns the screen to map-only view.
+      document.getElementById('leftPanel').classList.remove('panel-open');
+      document.getElementById('mobileOverlay').classList.remove('active');
+      setTimeout(function() {
+        map.invalidateSize();
+      }, 260);
+    }
+
     function addAllLayers() {
       if (categoryState.school) {
         schoolsLayer.addTo(map);
@@ -1123,36 +1295,37 @@
 
 
 
-    function createCategoryCircleMarker(latlng, color) {
-      // Color-coded circle markers.
-      return L.circleMarker(latlng, {
-        radius: 7,
-        fillColor: color,
-        color: '#ffffff',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.9
+    function createCategorySymbolMarker(latlng, styleInfo) {
+      // Different symbols for each category
+      const symbolIcon = L.divIcon({
+        className: 'category-symbol-marker',
+        html: `<span class="category-symbol symbol-${styleInfo.key}">${styleInfo.symbol}</span>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -16]
       });
+
+      return L.marker(latlng, { icon: symbolIcon });
     }
 
     function getCategoryStyle(categoryText) {
       const category = (categoryText || '').toLowerCase().trim();
 
       if (category.includes('school')) {
-        return { icon: schoolIcon, layer: schoolsLayer, key: 'school', color: '#2E86AB' };
+        return { icon: schoolIcon, layer: schoolsLayer, key: 'school', color: '#2E86AB', symbol: '★' };
       } else if (category.includes('hospital')) {
-        return { icon: hospitalIcon, layer: hospitalLayer, key: 'hospital', color: '#C0392B' };
+        return { icon: hospitalIcon, layer: hospitalLayer, key: 'hospital', color: '#C0392B', symbol: '▲' };
       } else if (category.includes('aba')) {
-        return { icon: abaIcon, layer: abaLayer, key: 'aba', color: '#2E8B57' };
+        return { icon: abaIcon, layer: abaLayer, key: 'aba', color: '#2E8B57', symbol: '◆' };
       } else if (category.includes('speech') || category.includes('occupational')) {
-        return { icon: speechIcon, layer: speechLayer, key: 'speech', color: '#7D3C98' };
+        return { icon: speechIcon, layer: speechLayer, key: 'speech', color: '#7D3C98', symbol: '●' };
       } else if (
         category.includes('support') ||
         category.includes('organisation') ||
         category.includes('organization') ||
         category.includes('autisms support')
       ) {
-        return { icon: supportIcon, layer: supportLayer, key: 'support', color: '#E67E22' };
+        return { icon: supportIcon, layer: supportLayer, key: 'support', color: '#E67E22', symbol: '✚' };
       } else {
         return null;
       }
@@ -1197,7 +1370,7 @@
             return L.marker(latlng, { opacity: 0 });
           }
 
-          const marker = createCategoryCircleMarker(latlng, styleInfo.color);
+          const marker = createCategorySymbolMarker(latlng, styleInfo);
 
           marker.bindPopup(buildPopupContent(p));
 
