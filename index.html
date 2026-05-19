@@ -715,54 +715,12 @@
   }
 }
 
-
-/* Mobile top-right controls: keeps the language toggle and hamburger visible on phones */
-@media (max-width: 768px) {
-  .topbar {
-    justify-content: flex-end !important;
-    align-items: center !important;
-  }
-
-  .topbar-right {
-    display: flex !important;
-    align-items: center !important;
-    width: auto !important;
-    position: absolute;
-    top: 8px;
-    right: 62px;
-    gap: 6px;
-    z-index: 2100;
-  }
-
-  #languageSwitcher {
-    display: block !important;
-    width: auto !important;
-    max-width: 112px;
-    padding: 8px 8px !important;
-    border-radius: 6px !important;
-    font-size: 13px !important;
-    font-weight: bold !important;
-  }
-
-  .hamburger-btn {
-    display: block !important;
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    z-index: 2100;
-  }
-
-  .topbar-right button {
-    display: none !important;
-  }
-}
-
   </style>
 </head>
 <body>
 
   <div class="topbar">
-    <h1>Autism Help</h1>
+    <h1>Services Locator</h1>
 
     <!-- Mobile hamburger menu: this only appears on phones/tablets -->
     <button id="mobileMenuBtn" class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open service menu">☰</button>
@@ -921,10 +879,10 @@
         speech: "Speech & Occupational Therapy",
         support: "Support Organizations",
         reset: "Reset",
-        find: "Find Nearby Services",
+        find: "Find Nearest Services",
         clear: "Clear Nearest Services",
         nearest: "Nearest Services",
-        instruction: 'Click "Find Nearby Services" to see the closest locations.',
+        instruction: 'Click "Find Nearest Services" to see the closest locations.',
         noActive: "No active category layers are available for nearby search.",
         address: "Address",
         category: "Category",
@@ -960,7 +918,7 @@
         find: "Buscar Servicios Cercanos",
         clear: "Limpiar Servicios Cercanos",
         nearest: "Servicios Más Cercanos",
-        instruction: 'Haz clic en "Buscar Servicios Cercanos" para ver las ubicaciones más próximas.',
+        instruction: 'Haz clic en "Buscar Servicios Más Cercanos" para ver las ubicaciones más próximas.',
         noActive: "No hay capas de categorías activas disponibles para la búsqueda cercana.",
         address: "Dirección",
         category: "Categoría",
@@ -1542,6 +1500,11 @@
       if (bounds.isValid()) {
         map.fitBounds(bounds, { padding: [30, 30] });
       }
+    }
+
+    function findNearestServices() {
+      // This keeps the renamed button working without changing the interface.
+      findNearbyServices();
     }
 
     function findNearbyServices() {
